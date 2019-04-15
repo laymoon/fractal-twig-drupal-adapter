@@ -25,10 +25,13 @@ class TwigAdapter extends Fractal.Adapter {
             Twig.Templates.registerLoader('fractal', function(location, params, callback, errorCallback) {
                 if (params.precompiled) {
                     params.data = params.precompiled;
+
                     return new Twig.Template(params);
                 }
 
-                let view = findView(location, source.fullPath);
+
+
+                let view = findView(stripExtension(location), source.fullPath);
 
                 if (!view) {
                     throw new Error(`Template ${location} not found`);
@@ -119,6 +122,14 @@ class TwigAdapter extends Fractal.Adapter {
 
         });
 
+        function stripExtension(str) {
+          str = str.split('.');
+          str.splice(str.length - 1);
+          str = str.join('.');
+
+          return str;
+        }
+
         function isHandle(str) {
             return str && str.startsWith(self._config.handlePrefix);
         }
@@ -136,6 +147,8 @@ class TwigAdapter extends Fractal.Adapter {
             paths.push(Path.join(sourcePath, location.replace(self._config.handlePrefix, '')));
             // @handle/to/collection => absolute/path/to/collection/collection.twig
             paths.push(Path.join(sourcePath, location.replace(self._config.handlePrefix, ''), basename + '.twig'));
+
+            // console.log(paths);
 
             return paths;
         }
@@ -170,7 +183,6 @@ class TwigAdapter extends Fractal.Adapter {
             return view;
         }
     }
-
 
     get twig() {
         return this._engine;
